@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: joy_alarm
+
+joy:
+  alarm:
+    interval: 60
+
+  myself:
+    bid: true
+    ask: true
