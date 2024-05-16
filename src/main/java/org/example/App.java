@@ -42,7 +42,6 @@ public class App {
 
         Runnable task = () -> {
             try {
-                seconds.getAndIncrement();
                 HttpClient client = HttpClients.createDefault();
                 HttpGet request = new HttpGet(url);
                 request.setHeader(HttpHeaders.REFERER, "http://finance.sina.com.cn");
@@ -51,8 +50,9 @@ public class App {
                 List<String> results = Arrays.asList(result.replace("\n", "").split(";"))
                         .stream().map(item -> item.split("=")[1].replace("\"", "")).collect(Collectors.toList());
 
-                // 每隔一分钟报一次最新价格
-                if (seconds.get() % 60 == 0) {
+                // 每隔5分钟报一次最新价格
+                seconds.getAndIncrement();
+                if (seconds.get() % 60 * 5 == 0) {
                     System.out.println("-------------------------------------------------------------------------");
                     results.forEach(item -> {
                         String[] itemDetails = item.split(",");
