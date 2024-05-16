@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+/**
+ * 告警任务
+ */
 @Component
 public class AlarmTask {
     @Value("${joy.myself.bid:true}")
