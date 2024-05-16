@@ -29,10 +29,10 @@ public class App {
         boolean bidReport = false;
         boolean askReport = true;
         StockConfig[] stockConfigs = {
-                new StockConfig("居然之家", "sz000785", 2.90, 3.1),
-                new StockConfig("广电网络", "sh600831", 3.5, 3.8),    // 3.71 6500
-                new StockConfig("航天动力", "sh600343", 8.05, 8.5),   // 7.27 3500
-                new StockConfig("人福医药", "sh600079", 19.8, 21.0)
+                new StockConfig("居然之家", "sz000785", 2.90, 3.1, false),
+                new StockConfig("广电网络", "sh600831", 3.5, 3.8, true),    // 3.71 6500
+                new StockConfig("航天动力", "sh600343", 8.05, 8.5, true),   // 7.27 3500
+                new StockConfig("人福医药", "sh600079", 19.8, 21.0, false)
         };
 
         String stockCode =
@@ -50,13 +50,14 @@ public class App {
                 List<String> results = Arrays.asList(result.replace("\n", "").split(";"))
                         .stream().map(item -> item.split("=")[1].replace("\"", "")).collect(Collectors.toList());
 
-                // 每隔5分钟报一次最新价格
+                // 定时报最新价
                 seconds.getAndIncrement();
-                if (seconds.get() % 60 * 5 == 0) {
+                if (seconds.get() % (60 * 1) == 0) {
                     System.out.println("-------------------------------------------------------------------------");
                     results.forEach(item -> {
                         String[] itemDetails = item.split(",");
-                        System.out.printf("%6s    现价%8s    今开%8s    昨收%8s\n", itemDetails[0] ,itemDetails[3] ,itemDetails[1] ,itemDetails[2]);
+                        System.out.printf("%6s    现价%8s    今开%8s    昨收%8s\n", itemDetails[0], itemDetails[3],
+                                itemDetails[1], itemDetails[2]);
                     });
                 }
 
@@ -65,18 +66,26 @@ public class App {
                     if (bidReport) {
                         Arrays.stream(stockConfigs)
                                 .filter(i -> i.getStockName().trim().equals(itemDetails[0]))
-                                .forEach(j -> {if (Double.valueOf(itemDetails[3])  <= j.getExpectedBid()) {
-                                    System.out.printf("【%s  买入提醒】 %6s    现价%8s    今开%8s    昨收%8s\n", LocalDateTime.now().format(
-                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), itemDetails[0] ,itemDetails[3] ,itemDetails[1] ,itemDetails[2]);
-                                }});
+                                .forEach(j -> {
+                                    if (Double.valueOf(itemDetails[3]) <= j.getExpectedBid()) {
+                                        System.out.printf("【%s  买入提醒】 %6s    现价%8s    今开%8s    昨收%8s\n",
+                                                LocalDateTime.now().format(
+                                                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                                                itemDetails[0], itemDetails[3], itemDetails[1], itemDetails[2]);
+                                    }
+                                });
                     }
                     if (askReport) {
                         Arrays.stream(stockConfigs)
                                 .filter(i -> i.getStockName().trim().equals(itemDetails[0]))
-                                .forEach(j -> {if (Double.valueOf(itemDetails[3])  >= j.getExpectedAsk()) {
-                                    System.out.printf("【%s  卖出提醒】 %6s    现价%8s    今开%8s    昨收%8s\n", LocalDateTime.now().format(
-                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), itemDetails[0] ,itemDetails[3] ,itemDetails[1] ,itemDetails[2]);
-                                }});
+                                .forEach(j -> {
+                                    if ((Double.valueOf(itemDetails[3]) >= j.getExpectedAsk()) && j.isHavePosition()) {
+                                        System.out.printf("【%s  卖出提醒】 %6s    现价%8s    今开%8s    昨收%8s\n",
+                                                LocalDateTime.now().format(
+                                                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                                                itemDetails[0], itemDetails[3], itemDetails[1], itemDetails[2]);
+                                    }
+                                });
                     }
                 });
             } catch (Exception e) {
@@ -88,11 +97,13 @@ public class App {
     }
 
 }
+
 @Data
 @AllArgsConstructor
-class StockConfig{
+class StockConfig {
     private String stockName;
     private String stockCode;
     private Double expectedBid; // 期望买价
     private Double expectedAsk; // 期望卖价
+    private boolean havePosition; // 是否持仓
 }
