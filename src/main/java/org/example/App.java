@@ -56,7 +56,7 @@ public class App {
                     System.out.println("-------------------------------------------------------------------------");
                     results.forEach(item -> {
                         String[] itemDetails = item.split(",");
-                        System.out.printf("%6s  MAX%8s  MIN%8s  NOW%8s    OPEN%8s    CLOSE%8s\n", itemDetails[0],
+                        System.out.printf("%6s    MAX%8s    MIN%8s    NOW%8s    OPEN%8s    CLOSE%8s\n", itemDetails[0],
                                 itemDetails[4], itemDetails[5], itemDetails[3], itemDetails[1], itemDetails[2]);
                     });
                 }
@@ -69,7 +69,7 @@ public class App {
                                 .forEach(j -> {
                                     if (Double.valueOf(itemDetails[3]) <= j.getExpectedBid()) {
                                         System.out.printf(
-                                                "【%s  BID notity】 %6s  MAX%8s  MIN%8s  NOW%8s  OPEN%8s  CLOSE%8s\n",
+                                                "【%s  BID notity】 %6s    MAX%8s    MIN%8s    NOW%8s    OPEN%8s    CLOSE%8s\n",
                                                 LocalDateTime.now()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                                 itemDetails[0], itemDetails[4], itemDetails[5], itemDetails[3],
@@ -83,7 +83,7 @@ public class App {
                                 .forEach(j -> {
                                     if ((Double.valueOf(itemDetails[3]) >= j.getExpectedAsk()) && j.isHavePosition()) {
                                         System.out.printf(
-                                                "【%s  ASK notity】 %6s  MAX%8s  MIN%8s  NOW%8s  OPEN%8s  CLOSE%8s\n",
+                                                "【%s  ASK notity】 %6s    MAX%8s    MIN%8s    NOW%8s    OPEN%8s    CLOSE%8s\n",
                                                 LocalDateTime.now()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                                 itemDetails[0], itemDetails[4], itemDetails[5], itemDetails[3],
