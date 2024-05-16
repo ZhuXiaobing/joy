@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * 信号报警器
+ * 启动类
  */
 @SpringBootApplication
 @EnableScheduling
