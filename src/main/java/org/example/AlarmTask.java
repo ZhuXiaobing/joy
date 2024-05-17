@@ -57,7 +57,7 @@ public class AlarmTask {
             // 定时报最新价
             seconds.getAndIncrement();
             if (seconds.get() % (interval) == 0) {
-                System.out.printf("----------------------------------[%s]----------------------------------\n",
+                System.out.printf("--------------------------------[%s]--------------------------------\n",
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 results.forEach(item -> {
                     String[] itemDetails = item.split(",");
