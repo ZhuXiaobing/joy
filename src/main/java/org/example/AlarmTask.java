@@ -11,6 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -61,8 +64,19 @@ public class AlarmTask {
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 results.forEach(item -> {
                     String[] itemDetails = item.split(",");
-                    System.out.printf("%6s   MIN%8s   NOW%8s[%s]   MAX%8s   OPEN%8s   CLOSE%8s\n", itemDetails[0],
-                            itemDetails[5], itemDetails[3], (Double.valueOf(itemDetails[3]) > Double.valueOf(itemDetails[1])) ? "↑":"↓", itemDetails[4], itemDetails[1], itemDetails[2]);
+                    System.out.printf("%6s" +
+                                    "   MIN%8s" +
+                                    "   NOW%8s[%s]" +
+                                    "   MAX%8s" +
+                                    "   OPEN%8s" +
+                                    "   CLOSE%8s\n",
+                            itemDetails[0],
+                            itemDetails[5],
+                            itemDetails[3],
+                            (Double.valueOf(itemDetails[3]) > Double.valueOf(itemDetails[1])) ? "↑" : (Double.valueOf(itemDetails[3]) < Double.valueOf(itemDetails[1])) ? "↓" : "=",
+                            itemDetails[4],
+                            itemDetails[1],
+                            itemDetails[2]);
                 });
             }
 
@@ -74,11 +88,21 @@ public class AlarmTask {
                             .forEach(j -> {
                                 if (Double.valueOf(itemDetails[3]) <= j.getExpectedBid()) {
                                     System.out.printf(
-                                            "【%s  BID notity】 %6s    MAX%8s    MIN%8s    NOW%8s    OPEN%8s    CLOSE%8s\n",
+                                            "【%s  BID notity】" +
+                                                    " %6s" +
+                                                    "    MAX%8s" +
+                                                    "    MIN%8s" +
+                                                    "    NOW%8s" +
+                                                    "    OPEN%8s" +
+                                                    "    CLOSE%8s\n",
                                             LocalDateTime.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                                            itemDetails[0], itemDetails[4], itemDetails[5], itemDetails[3],
-                                            itemDetails[1], itemDetails[2]);
+                                            itemDetails[0],
+                                            itemDetails[4],
+                                            itemDetails[5],
+                                            itemDetails[3],
+                                            itemDetails[1],
+                                            itemDetails[2]);
                                 }
                             });
                 }
@@ -88,11 +112,21 @@ public class AlarmTask {
                             .forEach(j -> {
                                 if ((Double.valueOf(itemDetails[3]) >= j.getExpectedAsk()) && j.isHavePosition()) {
                                     System.out.printf(
-                                            "【%s  ASK notity】 %6s    MAX%8s    MIN%8s    NOW%8s    OPEN%8s    CLOSE%8s\n",
+                                            "【%s  ASK notity】" +
+                                                    " %6s" +
+                                                    "    MAX%8s" +
+                                                    "    MIN%8s" +
+                                                    "    NOW%8s" +
+                                                    "    OPEN%8s" +
+                                                    "    CLOSE%8s\n",
                                             LocalDateTime.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                                            itemDetails[0], itemDetails[4], itemDetails[5], itemDetails[3],
-                                            itemDetails[1], itemDetails[2]);
+                                            itemDetails[0],
+                                            itemDetails[4],
+                                            itemDetails[5],
+                                            itemDetails[3],
+                                            itemDetails[1],
+                                            itemDetails[2]);
                                 }
                             });
                 }
