@@ -61,8 +61,8 @@ public class AlarmTask {
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 results.forEach(item -> {
                     String[] itemDetails = item.split(",");
-                    System.out.printf("%6s   MIN%8s   NOW%8s   MAX%8s   OPEN%8s   CLOSE%8s\n", itemDetails[0],
-                            itemDetails[5], itemDetails[3], itemDetails[4], itemDetails[1], itemDetails[2]);
+                    System.out.printf("%6s   MIN%8s   NOW%8s[%s]   MAX%8s   OPEN%8s   CLOSE%8s\n", itemDetails[0],
+                            itemDetails[5], itemDetails[3], (Double.valueOf(itemDetails[3]) > Double.valueOf(itemDetails[1])) ? "↑":"↓", itemDetails[4], itemDetails[1], itemDetails[2]);
                 });
             }
 
