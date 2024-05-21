@@ -66,7 +66,8 @@ public class AlarmTask {
                     String[] itemDetails = item.split(",");
                     System.out.printf("%6s" +
                                     "   MIN%8s" +
-                                    "   NOW%8s[%s]" +
+                                    "   NOW%8s" +
+                                    "[%s]" +
                                     "   MAX%8s" +
                                     "   OPEN%8s" +
                                     "   CLOSE%8s\n",
