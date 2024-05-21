@@ -41,7 +41,7 @@ public class AlarmTask {
     @Scheduled(cron="0/1 25-59 9  * * MON-FRI") // 周一到周五 上午9:25:00-9:59:59
     @Scheduled(cron="0/1 * 10  * * MON-FRI")    // 周一到周五 上午10:00:00-10:59:59
     @Scheduled(cron="0/1 0-29 11  * * MON-FRI") // 周一到周五 上午11:00:00-11:29:59
-    @Scheduled(cron="0/1 * 13-14  * * MON-FRI") // 周一到周五 下午13:00:00-14:59:59
+    @Scheduled(cron="0/1 * 13,14  * * MON-FRI") // 周一到周五 下午13:00:00-14:59:59
     public void yugao() {
         if (stockConfigs.isEmpty()) {
             stockConfigs.addAll(excelReader.getStockConfigs());
