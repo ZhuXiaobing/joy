@@ -4,8 +4,13 @@ spring:
 
 joy:
   alarm:
-    interval: 60
+    # 间隔时间单位量，一单位时间长度为5秒。value=12即为60秒间隔
+    interval: 12
 
   myself:
     bid: true
     ask: true
+
+logging:
+  file:
+    name: joy
