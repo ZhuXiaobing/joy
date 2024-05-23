@@ -9,3 +9,7 @@ joy:
   myself:
     bid: true
     ask: true
+
+logging:
+  file:
+    name: joy

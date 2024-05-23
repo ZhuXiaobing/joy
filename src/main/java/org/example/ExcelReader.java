@@ -14,25 +14,29 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class ExcelReader {
 
     @Autowired
     private ResourceLoader resourceLoader;
-    static List<StockConfig> stockConfigs = new ArrayList<>();
+    List<StockConfig> stockConfigs = new ArrayList<>();
+    static AtomicInteger seconds = new AtomicInteger();
     public List<StockConfig> getStockConfigs() {
-        if (!stockConfigs.isEmpty()) {
+        // 每隔一分钟更新一下股票配置。
+        if ((!stockConfigs.isEmpty()) && (seconds.getAndIncrement() % 60 != 0)) {
             return stockConfigs;
         }
+
         String excelFilePath = "stockinfo.xlsx";
-        List<StockConfig> stockConfigs = new ArrayList<>();
+        List<StockConfig> newStockConfigs = new ArrayList<>();
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(excelFilePath);
              Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0); // 读取第一个工作表
             for (Row row : sheet) { // 迭代每一行
                 if (row.getRowNum() != 0) {
-                    stockConfigs.add(new StockConfig(
+                    newStockConfigs.add(new StockConfig(
                             row.getCell(0).getStringCellValue(),
                             row.getCell(1).getStringCellValue(),
                             row.getCell(2).getNumericCellValue(),
@@ -44,7 +48,7 @@ public class ExcelReader {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        stockConfigs = newStockConfigs;
         return stockConfigs;
     }
 }

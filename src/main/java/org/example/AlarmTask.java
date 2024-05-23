@@ -6,6 +6,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
  */
 @Component
 public class AlarmTask {
+
+    private static final Logger logger = LoggerFactory.getLogger(AlarmTask.class);
     @Value("${joy.myself.bid:true}")
     boolean bidReport;
     @Value("${joy.myself.ask:true}")
@@ -35,18 +39,22 @@ public class AlarmTask {
     private int interval;
     @Resource
     public ExcelReader excelReader;
-    static List<StockConfig> stockConfigs = new ArrayList<>();
-    static String stockCode;
     static AtomicInteger seconds = new AtomicInteger();
-    @Scheduled(cron="0/1 25-59 9  * * MON-FRI") // 周一到周五 上午9:25:00-9:59:59
-    @Scheduled(cron="0/1 * 10  * * MON-FRI")    // 周一到周五 上午10:00:00-10:59:59
-    @Scheduled(cron="0/1 0-29 11  * * MON-FRI") // 周一到周五 上午11:00:00-11:29:59
-    @Scheduled(cron="0/1 * 13,14  * * MON-FRI") // 周一到周五 下午13:00:00-14:59:59
-    public void yugao() {
-        if (stockConfigs.isEmpty()) {
-            stockConfigs.addAll(excelReader.getStockConfigs());
-            stockCode = stockConfigs.stream().map(item -> item.getStockCode()).collect(Collectors.joining(","));
-        }
+    @Scheduled(cron="0/1 25-59 9  * * MON-FRI")
+    @Scheduled(cron="0/1 * 10  * * MON-FRI")
+    @Scheduled(cron="0/1 0-29 11  * * MON-FRI")
+    public void shangwu() {
+        report();
+    }
+
+    @Scheduled(cron="0/1 * 13-14  * * MON-FRI")
+    public void xiawu() {
+        report();
+    }
+
+    public void report() {
+        List<StockConfig> stockConfigs = excelReader.getStockConfigs();
+        String stockCode = stockConfigs.stream().map(item -> item.getStockCode()).collect(Collectors.joining(","));
         String url = "http://hq.sinajs.cn/list=" + stockCode; // 字段参考：https://www.cnblogs.com/ytkah/p/8510222.html
         try {
             HttpClient client = HttpClients.createDefault();
@@ -60,24 +68,26 @@ public class AlarmTask {
             // 定时报最新价
             seconds.getAndIncrement();
             if (seconds.get() % (interval) == 0) {
-                System.out.printf("--------------------------------[%s]--------------------------------\n",
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                logger.info("----------------------------------------------------------------");
                 results.forEach(item -> {
                     String[] itemDetails = item.split(",");
-                    System.out.printf("%6s" +
+                    String newPrice = String.format("%6s" +
                                     "   MIN%8s" +
                                     "   NOW%8s" +
                                     "[%s]" +
                                     "   MAX%8s" +
                                     "   OPEN%8s" +
-                                    "   CLOSE%8s\n",
+                                    "   CLOSE%8s",
                             itemDetails[0],
                             itemDetails[5],
                             itemDetails[3],
-                            (Double.valueOf(itemDetails[3]) > Double.valueOf(itemDetails[1])) ? "↑" : (Double.valueOf(itemDetails[3]) < Double.valueOf(itemDetails[1])) ? "↓" : "=",
+                            (Double.valueOf(itemDetails[3]) > Double.valueOf(itemDetails[1])) ? "↑" :
+                                    (Double.valueOf(itemDetails[3]) < Double.valueOf(itemDetails[1])) ? "↓" : "=",
                             itemDetails[4],
                             itemDetails[1],
                             itemDetails[2]);
+                    logger.info(newPrice);
+                    System.out.println(newPrice);
                 });
             }
 
@@ -88,14 +98,13 @@ public class AlarmTask {
                             .filter(i -> i.getStockName().trim().equals(itemDetails[0]))
                             .forEach(j -> {
                                 if (Double.valueOf(itemDetails[3]) <= j.getExpectedBid()) {
-                                    System.out.printf(
-                                            "【%s  BID notity】" +
-                                                    " %6s" +
+                                    String bidTip = String.format("【%s BID notity】" +
+                                                    " %s " +
                                                     "    MAX%8s" +
                                                     "    MIN%8s" +
                                                     "    NOW%8s" +
                                                     "    OPEN%8s" +
-                                                    "    CLOSE%8s\n",
+                                                    "    CLOSE%8s",
                                             LocalDateTime.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                             itemDetails[0],
@@ -104,6 +113,9 @@ public class AlarmTask {
                                             itemDetails[3],
                                             itemDetails[1],
                                             itemDetails[2]);
+                                    logger.info(bidTip);
+                                    System.out.println(bidTip);
+
                                 }
                             });
                 }
@@ -112,14 +124,13 @@ public class AlarmTask {
                             .filter(i -> i.getStockName().trim().equals(itemDetails[0]))
                             .forEach(j -> {
                                 if ((Double.valueOf(itemDetails[3]) >= j.getExpectedAsk()) && j.isHavePosition()) {
-                                    System.out.printf(
-                                            "【%s  ASK notity】" +
-                                                    " %6s" +
+                                    String askTip = String.format("【%s ASK notity】" +
+                                                    " %s " +
                                                     "    MAX%8s" +
                                                     "    MIN%8s" +
                                                     "    NOW%8s" +
                                                     "    OPEN%8s" +
-                                                    "    CLOSE%8s\n",
+                                                    "    CLOSE%8s",
                                             LocalDateTime.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                             itemDetails[0],
@@ -128,6 +139,8 @@ public class AlarmTask {
                                             itemDetails[3],
                                             itemDetails[1],
                                             itemDetails[2]);
+                                    logger.info(askTip);
+                                    System.out.println(askTip);
                                 }
                             });
                 }
