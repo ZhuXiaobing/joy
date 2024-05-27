@@ -28,10 +28,13 @@ public class ExcelReader {
         if ((!stockConfigs.isEmpty()) && (seconds.getAndIncrement() % 60 != 0)) {
             return stockConfigs;
         }
-
-        String excelFilePath = "stockinfo.xlsx";
         List<StockConfig> newStockConfigs = new ArrayList<>();
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(excelFilePath);
+
+        // String excelFilePath = "stockinfo.xlsx";
+        // try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(excelFilePath);
+
+        String excelFilePath = "D:\\workcode\\joy\\src\\main\\resources\\stockinfo.xlsx";
+        try (InputStream inputStream = new FileInputStream(new File(excelFilePath));
              Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0); // 读取第一个工作表
             for (Row row : sheet) { // 迭代每一行

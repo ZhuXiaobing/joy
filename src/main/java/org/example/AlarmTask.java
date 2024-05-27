@@ -42,7 +42,7 @@ public class AlarmTask {
     public ExcelReader excelReader;
     static AtomicInteger seconds = new AtomicInteger();
     // 上午 9:25 到 11:30 每 5 秒执行一次
-    @Scheduled(cron = "*/5 * 9-11 * * MON-FRI")
+    @Scheduled(cron = "*/5 * 9-11 * * MON-FRI", zone = "Asia/Shanghai")
     public void morningTask() {
         LocalTime now = LocalTime.now();
         if (now.isBefore(LocalTime.of(9, 25)) || now.isAfter(LocalTime.of(11, 30))) {
@@ -52,7 +52,7 @@ public class AlarmTask {
     }
 
     // 下午 13:00 到 15:00 每 5 秒执行一次
-    @Scheduled(cron = "*/5 * 13-14 * * MON-FRI")
+    @Scheduled(cron = "*/5 * 13-14 * * MON-FRI", zone = "Asia/Shanghai")
     public void afternoonTask() {
         report();
     }
