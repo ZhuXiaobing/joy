@@ -1,4 +1,4 @@
-package org.example;
+package org.joy;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
