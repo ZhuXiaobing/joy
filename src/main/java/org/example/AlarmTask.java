@@ -13,13 +13,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,7 +42,7 @@ public class AlarmTask {
     // 上午 9:25 到 11:30 每 5 秒执行一次
     @Scheduled(cron = "*/5 * 9-11 * * MON-FRI", zone = "Asia/Shanghai")
     public void morningTask() {
-        LocalTime now = LocalTime.now();
+        LocalTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Asia/Shanghai")).toLocalTime();
         if (now.isBefore(LocalTime.of(9, 25)) || now.isAfter(LocalTime.of(11, 30))) {
             return;
         }
