@@ -9,14 +9,14 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -39,22 +39,35 @@ public class AlarmTask {
     @Resource
     public ExcelReader excelReader;
     static AtomicInteger seconds = new AtomicInteger();
-    // 上午 9:25 到 11:30 每 5 秒执行一次
-    @Scheduled(cron = "*/5 * 9-11 * * MON-FRI", zone = "Asia/Shanghai")
-    public void morningTask() {
+    public boolean isWorkingDay() {
+        LocalDate currentDate = LocalDate.now();
+        DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
+        // DayOfWeek类中，MONDAY至FRIDAY表示周一至周五
+        return (dayOfWeek.compareTo(DayOfWeek.MONDAY) >= 0 &&
+                dayOfWeek.compareTo(DayOfWeek.FRIDAY) <= 0);
+    }
+
+    public boolean isDealTime() {
         LocalTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Asia/Shanghai")).toLocalTime();
-        if (now.isBefore(LocalTime.of(9, 25)) || now.isAfter(LocalTime.of(11, 30))) {
-            return;
+        boolean isSWDealTime =  (now.isAfter(LocalTime.of(9, 25)) && now.isBefore(LocalTime.of(11, 30)));
+        boolean isXWDealTime =  (now.isAfter(LocalTime.of(13, 0)) && now.isBefore(LocalTime.of(15, 0)));
+        return isSWDealTime || isXWDealTime;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady(ApplicationReadyEvent event) {
+        while (true) {
+            if (isWorkingDay() && isDealTime()) {
+                report();
+                try {
+                    Thread.sleep(interval * 1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    logger.info(e.getMessage());
+                }
+            }
         }
-        report();
     }
-
-    // 下午 13:00 到 15:00 每 5 秒执行一次
-    @Scheduled(cron = "*/5 * 13-14 * * MON-FRI", zone = "Asia/Shanghai")
-    public void afternoonTask() {
-        report();
-    }
-
     public void report() {
         List<StockConfig> stockConfigs = excelReader.getStockConfigs();
         String stockCode = stockConfigs.stream().map(item -> item.getStockCode()).collect(Collectors.joining(","));
@@ -70,8 +83,11 @@ public class AlarmTask {
 
             // 定时报最新价
             seconds.getAndIncrement();
-            if (seconds.get() % (interval) == 0) {
-                logger.info("----------------------------------------------------------------");
+            if (seconds.get() % (60/interval) == 0) {
+                String spilter = String.format("----------------------------------[%s]----------------------------------",
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                logger.info(spilter);
+                System.out.println(spilter);
                 results.forEach(item -> {
                     String[] itemDetails = item.split(",");
                     String newPrice = String.format("%6s" +
@@ -150,6 +166,7 @@ public class AlarmTask {
             });
         } catch (Exception e) {
             e.printStackTrace();
+            logger.info(e.getMessage());
         }
     }
 }

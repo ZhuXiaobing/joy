@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
@@ -17,20 +18,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class ExcelReader {
-
-    @Autowired
-    private ResourceLoader resourceLoader;
+    @Value("${joy.alarm.interval:12}")
+    private int interval;
     List<StockConfig> stockConfigs = new ArrayList<>();
     static AtomicInteger seconds = new AtomicInteger();
     public List<StockConfig> getStockConfigs() {
         // 每隔一分钟更新一下股票配置。
-        if ((!stockConfigs.isEmpty()) && (seconds.getAndIncrement() % 60 != 0)) {
+        if ((!stockConfigs.isEmpty()) && (seconds.getAndIncrement() % (60/interval) != 0)) {
             return stockConfigs;
         }
         List<StockConfig> newStockConfigs = new ArrayList<>();
-
-        // String excelFilePath = "stockinfo.xlsx";
-        // try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(excelFilePath);
 
         String excelFilePath = "D:\\workcode\\joy\\src\\main\\resources\\stockinfo.xlsx";
         try (InputStream inputStream = new FileInputStream(new File(excelFilePath));
