@@ -9,6 +9,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,7 @@ public class AlarmTask {
     public ExcelReader excelReader;
     static AtomicInteger seconds = new AtomicInteger();
     // 上午 9:25 到 11:30 每 5 秒执行一次
+    @Async
     @Scheduled(cron = "*/5 * 9-11 * * MON-FRI", zone = "Asia/Shanghai")
     public void morningTask() {
         LocalTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Asia/Shanghai")).toLocalTime();
@@ -50,6 +52,7 @@ public class AlarmTask {
     }
 
     // 下午 13:00 到 15:00 每 5 秒执行一次
+    @Async
     @Scheduled(cron = "*/5 * 13-14 * * MON-FRI", zone = "Asia/Shanghai")
     public void afternoonTask() {
         report();
