@@ -29,7 +29,7 @@ public class ExcelReader {
         }
         List<StockConfig> newStockConfigs = new ArrayList<>();
 
-        String excelFilePath = "D:\\workcode\\joy\\src\\main\\resources\\stockinfo.xlsx";
+        String excelFilePath = "D:\\workcode\\joy\\stockinfo.xlsx";
         try (InputStream inputStream = new FileInputStream(new File(excelFilePath));
              Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0); // 读取第一个工作表
