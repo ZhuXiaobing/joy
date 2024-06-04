@@ -48,7 +48,7 @@ public class AlarmTask {
     }
 
     public boolean isDealTime() {
-        LocalTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Asia/Shanghai")).toLocalTime();
+        LocalTime now = LocalTime.now();
         boolean isSWDealTime =  (now.isAfter(LocalTime.of(9, 25)) && now.isBefore(LocalTime.of(11, 30)));
         boolean isXWDealTime =  (now.isAfter(LocalTime.of(13, 0)) && now.isBefore(LocalTime.of(15, 0)));
         return isSWDealTime || isXWDealTime;
@@ -59,19 +59,23 @@ public class AlarmTask {
         while (true) {
             if (isWorkingDay() && isDealTime()) {
                 report();
-                try {
-                    Thread.sleep(interval * 1000);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    logger.info(e.getMessage());
-                }
+            }
+            logger.info("mark......");
+            try {
+                Thread.sleep(interval * 1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.info(e.getMessage());
             }
         }
     }
+
+
     public void report() {
         List<StockConfig> stockConfigs = excelReader.getStockConfigs();
         String stockCode = stockConfigs.stream().map(item -> item.getStockCode()).collect(Collectors.joining(","));
-        String url = "http://hq.sinajs.cn/list=" + stockCode; // 字段参考：https://www.cnblogs.com/ytkah/p/8510222.html
+        // 字段参考：https://www.cnblogs.com/ytkah/p/8510222.html
+        String url = "http://hq.sinajs.cn/list=" + stockCode;
         try {
             HttpClient client = HttpClients.createDefault();
             HttpGet request = new HttpGet(url);
@@ -90,18 +94,18 @@ public class AlarmTask {
                 System.out.println(spilter);
                 results.forEach(item -> {
                     String[] itemDetails = item.split(",");
+                    double priceGap = Double.valueOf(itemDetails[3]) - Double.valueOf(itemDetails[1]);
                     String newPrice = String.format("%6s" +
-                                    "   MIN%8s" +
-                                    "   NOW%8s" +
-                                    "[%s]" +
-                                    "   MAX%8s" +
-                                    "   OPEN%8s" +
-                                    "   CLOSE%8s",
+                                    "   MIN%10s" +
+                                    "   NOW%10s" +
+                                    "[%s %6.2f]" +
+                                    "   MAX%10s" +
+                                    "   OPEN%10s" +
+                                    "   CLOSE%10s",
                             itemDetails[0],
                             itemDetails[5],
                             itemDetails[3],
-                            (Double.valueOf(itemDetails[3]) > Double.valueOf(itemDetails[1])) ? "↑" :
-                                    (Double.valueOf(itemDetails[3]) < Double.valueOf(itemDetails[1])) ? "↓" : "=",
+                            (priceGap > 0) ? "↑" : (priceGap < 0) ? "↓" : "=", priceGap,
                             itemDetails[4],
                             itemDetails[1],
                             itemDetails[2]);
@@ -119,11 +123,11 @@ public class AlarmTask {
                                 if (Double.valueOf(itemDetails[3]) <= j.getExpectedBid()) {
                                     String bidTip = String.format("【%s BID notity】" +
                                                     " %s " +
-                                                    "    MAX%8s" +
-                                                    "    MIN%8s" +
-                                                    "    NOW%8s" +
-                                                    "    OPEN%8s" +
-                                                    "    CLOSE%8s",
+                                                    "    MAX%10s" +
+                                                    "    MIN%10s" +
+                                                    "    NOW%10s" +
+                                                    "    OPEN%10s" +
+                                                    "    CLOSE%10s",
                                             LocalDateTime.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                             itemDetails[0],
@@ -145,11 +149,11 @@ public class AlarmTask {
                                 if ((Double.valueOf(itemDetails[3]) >= j.getExpectedAsk()) && j.isHavePosition()) {
                                     String askTip = String.format("【%s ASK notity】" +
                                                     " %s " +
-                                                    "    MAX%8s" +
-                                                    "    MIN%8s" +
-                                                    "    NOW%8s" +
-                                                    "    OPEN%8s" +
-                                                    "    CLOSE%8s",
+                                                    "    MAX%10s" +
+                                                    "    MIN%10s" +
+                                                    "    NOW%10s" +
+                                                    "    OPEN%10s" +
+                                                    "    CLOSE%10s",
                                             LocalDateTime.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                             itemDetails[0],
