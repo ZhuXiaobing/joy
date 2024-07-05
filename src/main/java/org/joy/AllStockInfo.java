@@ -8,7 +8,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-
+/*
+* 这个类用来获取所有上A，深A stock的信息。
+* */
 public class AllStockInfo {
     public static void main(String[] args) throws Exception {
         new AllStockInfo().getAllStockByType("sh_a", 1);

@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -27,9 +25,9 @@ import java.util.stream.Collectors;
  * 告警任务
  */
 @Component
-public class AlarmTask {
+public class AlarmTaskInstantPrice {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlarmTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(AlarmTaskInstantPrice.class);
     @Value("${joy.myself.bid:true}")
     boolean bidReport;
     @Value("${joy.myself.ask:true}")
@@ -38,26 +36,14 @@ public class AlarmTask {
     private int interval;
     @Resource
     public ExcelReader excelReader;
+    @Resource
+    public AlarmTaskIncreaseRate alarmTaskIncreaseRate;
     static AtomicInteger seconds = new AtomicInteger();
-    public boolean isWorkingDay() {
-        LocalDate currentDate = LocalDate.now();
-        DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
-        // DayOfWeek类中，MONDAY至FRIDAY表示周一至周五
-        return (dayOfWeek.compareTo(DayOfWeek.MONDAY) >= 0 &&
-                dayOfWeek.compareTo(DayOfWeek.FRIDAY) <= 0);
-    }
-
-    public boolean isDealTime() {
-        LocalTime now = LocalTime.now();
-        boolean isSWDealTime =  (now.isAfter(LocalTime.of(9, 25)) && now.isBefore(LocalTime.of(11, 30)));
-        boolean isXWDealTime =  (now.isAfter(LocalTime.of(13, 0)) && now.isBefore(LocalTime.of(15, 0)));
-        return isSWDealTime || isXWDealTime;
-    }
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady(ApplicationReadyEvent event) {
         while (true) {
-            if (isWorkingDay() && isDealTime()) {
+            if (Utils.isDealTime()) {
                 report();
             }
             logger.info("mark......");
@@ -80,16 +66,16 @@ public class AlarmTask {
             HttpClient client = HttpClients.createDefault();
             HttpGet request = new HttpGet(url);
             request.setHeader(HttpHeaders.REFERER, "http://finance.sina.com.cn");
+            String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             HttpResponse response = client.execute(request);
             String result = EntityUtils.toString(response.getEntity());
             List<String> results = Arrays.asList(result.replace("\n", "").split(";"))
                     .stream().map(item -> item.split("=")[1].replace("\"", "")).collect(Collectors.toList());
-
+            alarmTaskIncreaseRate.addInstantPriceIntoPriceCache(now ,results);
             // 定时报最新价
             seconds.getAndIncrement();
             if (seconds.get() % (60/interval) == 0) {
-                String spilter = String.format("----------------------------------[%s]----------------------------------",
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                String spilter = String.format("----------------------------------[%s]----------------------------------",now);
                 logger.info(spilter);
                 System.out.println(spilter);
                 results.forEach(item -> {
@@ -128,8 +114,7 @@ public class AlarmTask {
                                                     "    NOW%10s" +
                                                     "    OPEN%10s" +
                                                     "    CLOSE%10s",
-                                            LocalDateTime.now()
-                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                                            now,
                                             itemDetails[0],
                                             itemDetails[4],
                                             itemDetails[5],
@@ -154,8 +139,7 @@ public class AlarmTask {
                                                     "    NOW%10s" +
                                                     "    OPEN%10s" +
                                                     "    CLOSE%10s",
-                                            LocalDateTime.now()
-                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                                            now,
                                             itemDetails[0],
                                             itemDetails[4],
                                             itemDetails[5],
