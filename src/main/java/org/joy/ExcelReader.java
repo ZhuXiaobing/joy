@@ -22,9 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ExcelReader {
     @Value("${joy.alarm.interval:12}")
     private int interval;
-
-    @Resource
-    private AlarmTaskIncreaseRate alarmTaskIncreaseRate;
     List<StockConfig> stockConfigs = new ArrayList<>();
     static AtomicInteger seconds = new AtomicInteger();
     public List<StockConfig> getStockConfigs() {
@@ -47,8 +44,6 @@ public class ExcelReader {
                             row.getCell(3).getNumericCellValue(),
                             row.getCell(4).getBooleanCellValue()
                     ));
-                    // 用stock code 作为key.
-                    alarmTaskIncreaseRate.addPriceDequeIntoCache(row.getCell(0).getStringCellValue());
                 }
             }
         } catch (Exception e) {

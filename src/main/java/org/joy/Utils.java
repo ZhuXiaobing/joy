@@ -5,8 +5,14 @@ import org.springframework.stereotype.Component;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+@Component
 public class Utils {
+
+    // 全局共享的线程池。
+    static ExecutorService executorService = Executors.newCachedThreadPool();
 
     private static boolean isWorkingDay() {
         LocalDate currentDate = LocalDate.now();

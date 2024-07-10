@@ -37,23 +37,27 @@ public class AlarmTaskInstantPrice {
     @Resource
     public ExcelReader excelReader;
     @Resource
+    public JoyNotify joyNotify;
+    @Resource
     public AlarmTaskIncreaseRate alarmTaskIncreaseRate;
     static AtomicInteger seconds = new AtomicInteger();
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady(ApplicationReadyEvent event) {
-        while (true) {
-            if (Utils.isDealTime()) {
-                report();
+        Utils.executorService.submit(() -> {
+            while (true) {
+                if (Utils.isDealTime()) {
+                    report();
+                }
+                logger.info("mark......");
+                try {
+                    Thread.sleep(interval * 1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    logger.info(e.getMessage());
+                }
             }
-            logger.info("mark......");
-            try {
-                Thread.sleep(interval * 1000);
-            } catch (Exception e) {
-                e.printStackTrace();
-                logger.info(e.getMessage());
-            }
-        }
+        });
     }
 
 
@@ -123,7 +127,7 @@ public class AlarmTaskInstantPrice {
                                             itemDetails[2]);
                                     logger.info(bidTip);
                                     System.out.println(bidTip);
-
+                                    joyNotify.bidNotify();
                                 }
                             });
                 }
@@ -148,6 +152,7 @@ public class AlarmTaskInstantPrice {
                                             itemDetails[2]);
                                     logger.info(askTip);
                                     System.out.println(askTip);
+                                    joyNotify.askNotify();
                                 }
                             });
                 }
